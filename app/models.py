@@ -40,6 +40,7 @@ class Solution(Base):
     problem_id = Column(Integer, ForeignKey("problems.id"))
     code = Column(String)
     language = Column(String)
+    file_path = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships

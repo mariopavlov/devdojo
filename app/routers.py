@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from . import crud, schemas, database, models
+from .file_manager import FileManager
 
 router = APIRouter()
+file_manager = FileManager("solutions")
 
 # Dependency
 def get_db():
@@ -49,3 +51,17 @@ def get_practice_problems(limit: int = 10, db: Session = Depends(get_db)):
 @router.post("/practice/{problem_id}/complete")
 def complete_practice(problem_id: int, success: bool, db: Session = Depends(get_db)):
     return crud.update_practice_record(db, problem_id=problem_id, success=success)
+
+@router.get("/solutions/{solution_id}/file")
+def get_solution_file(solution_id: int, db: Session = Depends(get_db)):
+    # Get solution from database
+    solution = db.query(models.Solution).filter(models.Solution.id == solution_id).first()
+    if not solution:
+        raise HTTPException(status_code=404, detail="Solution not found")
+    
+    # Load file content
+    content = file_manager.load_solution(solution_id, solution.language)
+    if content is None:
+        raise HTTPException(status_code=404, detail="Solution file not found")
+    
+    return {"content": content, "language": solution.language}

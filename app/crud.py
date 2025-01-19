@@ -2,6 +2,10 @@ from sqlalchemy.orm import Session, joinedload
 from datetime import datetime, timedelta
 import math
 from . import models, schemas
+from .file_manager import FileManager
+
+# Initialize FileManager
+file_manager = FileManager("solutions")
 
 def get_problem(db: Session, problem_id: int):
     return db.query(models.Problem)\
@@ -44,13 +48,8 @@ def create_problem(db: Session, problem: schemas.ProblemCreate):
     return db_problem
 
 def create_solution(db: Session, solution: schemas.SolutionCreate):
-    db_solution = models.Solution(
-        problem_id=solution.problem_id,
-        code=solution.code,
-        language=solution.language
-    )
-    db.add(db_solution)
-    db.commit()
+    # Use FileManager to save the solution
+    db_solution = file_manager.save_solution(db, solution)
     return db_solution
 
 def get_solutions(db: Session, problem_id: int):
